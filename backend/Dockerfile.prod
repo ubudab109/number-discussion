@@ -14,6 +14,9 @@ COPY . .
 # Build TypeScript
 RUN npm run build
 
+# Copy schema.sql to dist folder after build
+RUN mkdir -p dist/db && cp src/db/schema.sql dist/db/schema.sql
+
 # Production stage
 FROM node:20-alpine
 
@@ -27,10 +30,9 @@ RUN npm ci --only=production
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/db/schema.sql ./src/db/schema.sql
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3002
 
 # Start the application
 CMD ["node", "dist/index.js"]
