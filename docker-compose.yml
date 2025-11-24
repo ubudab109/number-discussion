@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+    postgres:
+        image: postgres:16-alpine
+        container_name: number-discussion-db
+        environment:
+            POSTGRES_DB: ${DB_NAME:-number_discussion}
+            POSTGRES_USER: ${DB_USER:-postgres}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    backend:
+        image: node:20-alpine
+        container_name: number-discussion-backend
+        working_dir: /app
+        command: sh -c "npm install && npm run dev"
+        environment:
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_NAME: ${DB_NAME:-number_discussion}
+            DB_USER: ${DB_USER:-postgres}
+            DB_PASSWORD: ${DB_PASSWORD:-postgres}
+            JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+            PORT: 3000
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./backend:/app
+            - /app/node_modules
+        depends_on:
+            postgres:
+                condition: service_healthy
+        restart: unless-stopped
+
+    frontend:
+        image: node:20-alpine
+        container_name: number-discussion-frontend
+        working_dir: /app
+        command: sh -c "npm install && npm run dev -- --host"
+        environment:
+            VITE_API_URL: http://localhost:3000/api
+        ports:
+            - "5173:5173"
+        volumes:
+            - ./frontend:/app
+            - /app/node_modules
+        depends_on:
+            - backend
+        restart: unless-stopped
+
+volumes:
+    postgres_data:
+
+networks:
+    default:
+        name: number-discussion-network
