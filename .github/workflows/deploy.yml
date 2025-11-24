@@ -53,6 +53,14 @@ jobs:
                       # Copy production environment file
                       cp .env.production .env
 
+                      # Install backend dependencies
+                      cd backend
+                      npm install
+
+                      # Install frontend dependencies
+                      cd frontend
+                      npm install
+
                       # Stop existing containers
                       docker-compose -f docker-compose.prod.yml down
 
