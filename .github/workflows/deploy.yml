@@ -53,22 +53,20 @@ jobs:
                       # Copy production environment file
                       cp .env.production .env
 
-                      # Install backend dependencies
-                      cd backend
-                      npm install
-
-                      # Install frontend dependencies
-                      cd frontend
-                      npm install
-
                       # Stop existing containers
                       docker-compose -f docker-compose.prod.yml down
 
                       # Remove old images
                       docker-compose -f docker-compose.prod.yml rm -f
 
-                      # Build and start containers
+                      # Build and start containers (dependencies installed during Docker build)
                       docker-compose -f docker-compose.prod.yml up -d --build
+
+                      # Wait for containers to be healthy
+                      sleep 10
+
+                      # Check if containers are running
+                      docker-compose -f docker-compose.prod.yml ps
 
                       # Clean up unused images
                       docker image prune -f
