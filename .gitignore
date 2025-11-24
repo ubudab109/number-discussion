@@ -8,3 +8,4 @@
 # Ignore env
 ./env
 .env
+.env.production
